@@ -29,14 +29,269 @@ Laporan Resmi Praktikum Modul 5 Jaringan Komputer 2023
 ### (A) Topologi
 > Tugas pertama, buatlah peta wilayah sesuai berikut ini!
 
+Berikut adalah peta wialyah (topologi) jaringan yang telah dibuat.  
+![Screenshot (114)](https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/107914177/8587de49-f3df-472b-ae74-b64d3c1c5983)
+
 ### (B) VLSM dan Subnetting
 > Untuk menghitung rute-rute yang diperlukan, gunakan perhitungan dengan metode VLSM. Buat juga pohonnya, dan lingkari subnet yang dilewati.
+
+Berdasarkan perhitungan VLSM yang sudah dilakukan berikut adalah konfigurasi IP yang digunakan pada masing-masing node.
+- Aura
+```bash
+auto eth0
+iface eth0 inet dhcp
+
+auto eth1
+iface eth1 inet static
+	address 10.40.0.1
+	netmask 255.255.255.252
+
+auto eth2
+iface eth2 inet static
+	address 10.40.0.5
+	netmask 255.255.255.252
+```
+- Heiter (DHCP Relay)
+```bash
+auto eth0
+iface eth0 inet static
+	address 10.40.0.2
+	netmask 255.255.255.252
+
+auto eth1
+iface eth1 inet static
+	address 10.40.8.1
+	netmask 255.255.248.0
+
+auto eth2
+iface eth2 inet static
+	address 10.40.4.1
+	netmask 255.255.252.0
+```
+- Frieren
+```bash
+auto eth0
+iface eth0 inet static
+	address 10.40.0.6
+	netmask 255.255.255.252
+
+auto eth1
+iface eth1 inet static
+	address 10.40.0.13
+	netmask 255.255.255.252
+
+auto eth2
+iface eth2 inet static
+	address 10.40.0.9
+	netmask 255.255.255.252
+```
+- Himmel (DHCP Relay)
+```bash
+auto eth0
+iface eth0 inet static
+	address 10.40.0.14
+	netmask 255.255.255.252
+
+auto eth1
+iface eth1 inet static
+	address 10.40.2.1
+	netmask 255.255.254.0
+
+auto eth2
+iface eth2 inet static
+	address 10.40.0.129
+	netmask 255.255.255.128
+```
+- Fern
+```bash
+auto eth0
+iface eth0 inet static
+	address 10.40.0.130
+	netmask 255.255.255.128
+
+auto eth1
+iface eth1 inet static
+	address 10.40.0.17
+	netmask 255.255.255.252
+
+auto eth2
+iface eth2 inet static
+	address 10.40.0.21
+	netmask 255.255.255.252
+```
+- Revolte (DHCP Server)
+```bash
+auto eth0
+iface eth0 inet static
+	address 10.40.0.22
+	netmask 255.255.255.252
+	gateway 10.40.0.21
+```
+- Richter (DNS Server)
+```bash
+auto eth0
+iface eth0 inet static
+	address 10.40.0.18
+	netmask 255.255.255.252
+	gateway 10.40.0.17
+```
+- Sein (Web Server)
+```bash
+auto eth0
+iface eth0 inet static
+	address 10.40.4.2
+	netmask 255.255.252.0 
+	gateway 10.40.4.1
+```
+- Stark (Web Server)
+```bash
+auto eth0
+iface eth0 inet static
+	address 10.40.0.10
+	netmask 255.255.255.252
+	gateway 10.40.0.9
+```
+- TurkRegion, GrobeForest, LaubHills, SchwerMountain (Clients)
+```bash
+auto eth0
+iface eth0 inet dhcp
+```
 
 ### (C) Routing
 > Kemudian buatlah rute sesuai dengan pembagian IP yang kalian lakukan.
 
+Berikut adalah konfigurasi routing berdasarkan pembagian IP yang telah dilakukan.
+- Aura
+```bash
+# Gateway Heiter
+route add -net 10.40.8.0 netmask 255.255.248.0 gw 10.40.0.2 # A2
+route add -net 10.40.4.0 netmask 255.255.252.0 gw 10.40.0.2 # A3
+# Gateway Frieren
+route add -net 10.40.0.8 netmask 255.255.255.252 gw 10.40.0.6 # A5
+route add -net 10.40.0.12 netmask 255.255.255.252 gw 10.40.0.6 # A6
+route add -net 10.40.2.0 netmask 255.255.254.0 gw 10.40.0.6 # A7
+route add -net 10.40.0.128 netmask 255.255.255.128 gw 10.40.0.6 # A8
+route add -net 10.40.0.16 netmask 255.255.255.252 gw 10.40.0.6 # A9
+route add -net 10.40.0.20 netmask 255.255.255.252 gw 10.40.0.6 # A10
+```
+- Heiter
+```bash
+# Bind anywhere
+route add -net 0.0.0.0 netmask 0.0.0.0 gw 10.40.0.1
+```
+- Frieren
+```bash
+# Bind anywhere
+route add -net 0.0.0.0 netmask 0.0.0.0 gw 10.40.0.5
+# Gateway Himmel
+route add -net 10.40.2.0 netmask 255.255.254.0 gw 10.40.0.14 # A7
+route add -net 10.40.0.128 netmask 255.255.255.128 gw 10.40.0.14 # A8
+route add -net 10.40.0.16 netmask 255.255.255.252 gw 10.40.0.14 # A9
+route add -net 10.40.0.20 netmask 255.255.255.252 gw 10.40.0.14 # A10
+```
+- Himmel
+```bash
+# Bind anywhere
+route add -net 0.0.0.0 netmask 0.0.0.0 gw 10.40.0.13
+# Gateway Fern
+route add -net 10.40.0.16 netmask 255.255.255.252 gw 10.40.0.130 # A9
+route add -net 10.40.0.20 netmask 255.255.255.252 gw 10.40.0.130 # A10
+```
+- Fern
+```bash
+# Bind anywhere
+route add -net 0.0.0.0 netmask 0.0.0.0 gw 10.40.0.129
+```
+
 ### (D) DHCP
 > Tugas berikutnya adalah memberikan IP pada subnet SchwerMountain, LaubHills, TurkRegion, dan GrobeForest menggunakan bantuan DHCP.
+
+Untuk memberikan IP pada subnet SchwerMountain, LaubHills, TurkRegion, dan GrobeForest menggunakan bantuan DHCP, maka dilakukan konfigurasi sebagai berikut pada masing-masing node.
+```bash
+auto eth0
+iface eth0 inet dhcp
+```
+Setelah itu, lakukan konfigurasi pada DHCP Server (Revolte) dengan menjalankan script berikut. Pastikan sudah terinstall `isc-dhcp-server` pada node Revolte.
+```bash
+echo 'INTERFACES="eth0"' > /etc/default/isc-dhcp-server
+
+echo '
+# A10
+subnet 10.40.0.20 netmask 255.255.255.252 {
+}
+
+# A9
+subnet 10.40.0.16 netmask 255.255.255.252 {
+}
+
+# SchwerMountain (A8)
+subnet 10.40.0.128 netmask 255.255.255.128 {
+    range 10.40.0.130 10.40.0.193;
+    option routers 10.40.0.129;
+    option broadcast-address 10.40.0.255;
+    default-lease-time 600;
+    max-lease-time 7200;
+}
+
+# LaubHills (A7)
+subnet 10.40.2.0 netmask 255.255.254.0 {
+    range 10.40.2.2 10.40.3.1;
+    option routers 10.40.2.1;
+    option broadcast-address 10.40.3.255;
+    default-lease-time 600;
+    max-lease-time 7200;
+}
+
+# A6
+subnet 10.40.0.12 netmask 255.255.255.252 {
+}
+
+# A5
+subnet 10.40.0.8 netmask 255.255.255.252 {
+}
+
+# A4
+subnet 10.40.0.4 netmask 255.255.255.252 {
+}
+
+# A1
+subnet 10.40.0.0 netmask 255.255.255.252 {
+}
+
+# TurkRegion (A2)
+subnet 10.40.8.0 netmask 255.255.248.0 {
+    range 10.40.8.2 10.40.11.255;
+    option routers 10.40.8.1;
+    option broadcast-address 10.40.15.255;
+    default-lease-time 600;
+    max-lease-time 7200;
+}
+
+# GrobeForest (A3)
+subnet 10.40.4.0 netmask 255.255.252.0 {
+    range 10.40.4.2 10.40.6.1;
+    option routers 10.40.4.1;
+    option broadcast-address 10.40.7.255;
+    default-lease-time 600;
+    max-lease-time 7200;
+}
+' > /etc/dhcp/dhcpd.conf
+
+service isc-dhcp-server restart
+```
+Selanjutnya, lakukan konfigurasi pada DHCP Relay (Heiter dan Himmel) dengan menjalankan script berikut. Pastikan sudah terinstall `isc-dhcp-relay` pada node Heiter dan Himmel.
+```bash
+echo '
+SERVERS="10.40.0.22"  
+INTERFACES="eth0 eth1 eth2"
+OPTIONS=
+' > /etc/default/isc-dhcp-relay
+
+echo 'net.ipv4.ip_forward=1' > /etc/sysctl.conf
+
+service isc-dhcp-relay restart
+```
+Lakukan restart pada node client untuk mendapatkan IP dari DHCP Server.
 
 ## Nomor 1
 > Agar topologi yang kalian buat dapat mengakses keluar, kalian diminta untuk mengkonfigurasi Aura menggunakan iptables, tetapi tidak ingin menggunakan MASQUERADE.
