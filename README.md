@@ -358,6 +358,7 @@ service ssh start
 ```
 Selanjutnya, lakukan koneksi SSH pada node Stark atau Sein dengan menggunakan GrobeForest (misalnya, TurkRegion). Jika koneksi SSH berhasil, maka konfigurasi telah berhasil.  
 ![image](https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/107914177/e07bdf03-add7-4ea5-b3d4-5c1a93772df1)
+
 Lakukan juga koneksi SSH pada node Stark atau Sein dengan menggunakan node selain GrobeForest (misalnya, TurkRegion). Jika koneksi SSH tidak berhasil, maka konfigurasi telah berhasil.  
 ![image](https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/107914177/cd783bca-795b-4d9e-b193-2a8004fd9053)
 
@@ -377,6 +378,7 @@ date -s "13 dec 2023 10:00" # jam kerja
 ```
 Jika koneksi SSH berhasil, maka konfigurasi telah berhasil.  
 ![image](https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/107914177/365037a6-776d-4566-862c-658085b84470)
+
 Lakukan juga koneksi SSH pada jam selain jam kerja. 
 ```bash
 date -s "16 dec 2023 10:00" # bukan jam kerja
