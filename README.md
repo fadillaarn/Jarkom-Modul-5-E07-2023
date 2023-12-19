@@ -296,17 +296,93 @@ Lakukan restart pada node client untuk mendapatkan IP dari DHCP Server.
 ## Nomor 1
 > Agar topologi yang kalian buat dapat mengakses keluar, kalian diminta untuk mengkonfigurasi Aura menggunakan iptables, tetapi tidak ingin menggunakan MASQUERADE.
 
+Agar bisa mengakses internet keluar tanpa menggunakan MASQUERADE, maka jalankan perintah berikut pada node Aura.
+```bash
+ETH0_IP=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+iptables -t nat -A POSTROUTING -o eth0 -j SNAT --to-source $ETH0_IP
+```
+Script di atas akan mengambil informasi alamat IPv4 dari antarmuka jaringan eth0 Aura dan mengisinya dalam variabel `ETH0_IP`. Selanjutnya, akan dilakukan konfigurasi iptables untuk melakukan SNAT pada antarmuka jaringan eth0 dengan alamat IPv4 yang telah didapatkan sebelumnya.
+
 ## Nomor 2
 > Kalian diminta untuk melakukan drop semua TCP dan UDP kecuali port 8080 pada TCP.
+
+Untuk melakukan drop semua TCP dan UDP kecuali port 8080 pada TCP, jalankan perintah berikut pada salah satu node client (misalnya, TurkRegion).
+```bash
+# Bersihkan semua aturan atau filter
+iptables -F
+# Drop semua koneksi TCP kecuali port 8080
+iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
+iptables -A INPUT -p tcp -j DROP
+# Drop semua koneksi UDP
+iptables -A INPUT -p udp -j DROP
+```
+Untuk melakukan pengetesan, install `netcat` pada salah satu node client yang telah dilakukan konfigurasi iptables sebelumnya (dalam hal ini, TurkRegion), kemudian jalankan perintah berikut.
+```bash
+nc -l -p 8080
+```
+Perintah di atas akan membuat node client yang bersangkutan menjadi server yang mendengarkan koneksi pada port 8080. Selanjutnya, lakukan pengetesan dengan menjalankan perintah berikut pada node client lain (misalnya, GrobeForest).
+```bash
+nmap -p 8080 (IP TurkRegion)
+```
+Perintah di atas akan melakukan scanning port pada node client yang bersangkutan dengan port 8080. Jika berhasil, maka akan muncul output sebagai berikut.  
+![image](https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/107914177/919167ae-d13d-4afd-bef0-ee4aeaca31cf)
+Lakukan juga scanning port pada port selain 8080 (misalnya, 80) dengan menjalankan perintah berikut.
+```bash
+nmap -p 80 (IP TurkRegion)
+```
+Jika berhasil, maka akan muncul output sebagai berikut.  
+![image](https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/107914177/566ff1fb-f78e-4fa0-bb73-108a5a998765)
 
 ## Nomor 3
 > Kepala Suku North Area meminta kalian untuk membatasi DHCP dan DNS Server hanya dapat dilakukan ping oleh maksimal 3 device secara bersamaan, selebihnya akan di drop.
 
+Untuk membatasi DHCP dan DNS Server hanya dapat dilakukan ping oleh maksimal 3 device secara bersamaan, maka jalankan perintah berikut pada node Richter dan Revolte.
+```bash
+# Membatasi jumlah koneksi ICMP yang masuk supaya tidak lebih dari 3
+iptables -A INPUT -p icmp -m connlimit --connlimit-above 3 --connlimit-mask 0 -j DROP
+```
+Pengetesan dilakukan dengan cara melakukan ping pada node Richter atau Revolte dengan lebih dari 3 node client yang berbeda secara bersamaan. Jika ping tidak berhasil pada node client ke-4, maka konfigurasi telah berhasil.  
+![image](https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/107914177/3a8f7f46-8ffb-4d90-bbe7-a9b0dc39ac1f)
+
 ## Nomor 4
 > Lakukan pembatasan sehingga koneksi SSH pada Web Server hanya dapat dilakukan oleh masyarakat yang berada pada GrobeForest.
 
+Supaya koneksi SSH pada Web Server hanya dapat dilakukan oleh masyarakat yang berada pada GrobeForest, maka jalankan perintah berikut pada node Stark dan juga Sein.
+```bash
+# Izinkan koneksi SSH hanya dari GrobeForest
+iptables -A INPUT -p tcp --dport 22 ! -s 10.40.10.4 -j REJECT
+```
+Pengetesan dilakukan dengan cara melakukan koneksi SSH pada node Stark atau Sein. Buka terlebih dahulu koneksi SSH pada node Stark atau Sein dengan menjalankan perintah berikut.
+```bash
+service ssh start
+```
+Selanjutnya, lakukan koneksi SSH pada node Stark atau Sein dengan menggunakan GrobeForest (misalnya, TurkRegion). Jika koneksi SSH berhasil, maka konfigurasi telah berhasil.  
+![image](https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/107914177/e07bdf03-add7-4ea5-b3d4-5c1a93772df1)
+Lakukan juga koneksi SSH pada node Stark atau Sein dengan menggunakan node selain GrobeForest (misalnya, TurkRegion). Jika koneksi SSH tidak berhasil, maka konfigurasi telah berhasil.  
+![image](https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/107914177/cd783bca-795b-4d9e-b193-2a8004fd9053)
+
 ## Nomor 5
 > Selain itu, akses menuju WebServer hanya diperbolehkan saat jam kerja yaitu Senin-Jumat pada pukul 08.00-16.00.
+
+Untuk membatasi akses menuju WebServer hanya diperbolehkan saat jam kerja yaitu Senin-Jumat pada pukul 08.00-16.00, maka jalankan perintah berikut pada node Stark dan juga Sein.
+```bash
+# Izinkan akses ke Web Server pada jam kerja (Senin-Jumat pukul 08.00-16.00)
+iptables -A INPUT -p tcp --dport 22 -m time --timestart 08:00 --timestop 16:00 --weekdays Mon,Tue,Wed,Thu,Fri -j ACCEPT
+# Drop akses selain dari ketentuan
+iptables -A INPUT -p tcp --dport 22 -j DROP
+```
+Pengetesan dilakukan dengan cara melakukan koneksi SSH, mirip dengan nomor sebelumnya. Hanya saja untuk kali ini pengetesan dilakukan pada jam kerja (Senin-Jumat pukul 08.00-16.00). Atur terlebih dahulu jam pada node tester (misalnya, TurkRegion) agar sesuai dengan jam kerja.
+```bash
+date -s "13 dec 2023 10:00" # jam kerja
+```
+Jika koneksi SSH berhasil, maka konfigurasi telah berhasil.  
+![image](https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/107914177/365037a6-776d-4566-862c-658085b84470)
+Lakukan juga koneksi SSH pada jam selain jam kerja. 
+```bash
+date -s "16 dec 2023 10:00" # bukan jam kerja
+```
+Jika koneksi SSH tidak berhasil, maka konfigurasi telah berhasil.  
+![image](https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/107914177/892a29bd-03e6-40a2-a8fc-a52c8c21a016)
 
 ## Nomor 6
 > Lalu, karena ternyata terdapat beberapa waktu di mana network administrator dari WebServer tidak bisa stand by, sehingga perlu ditambahkan rule bahwa akses pada hari Senin - Kamis pada jam 12.00 - 13.00 dilarang (istirahat maksi cuy) dan akses di hari Jumat pada jam 11.00 - 13.00 juga dilarang (maklum, Jumatan rek).
