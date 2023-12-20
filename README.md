@@ -389,16 +389,91 @@ Jika koneksi SSH tidak berhasil, maka konfigurasi telah berhasil.
 ## Nomor 6
 > Lalu, karena ternyata terdapat beberapa waktu di mana network administrator dari WebServer tidak bisa stand by, sehingga perlu ditambahkan rule bahwa akses pada hari Senin - Kamis pada jam 12.00 - 13.00 dilarang (istirahat maksi cuy) dan akses di hari Jumat pada jam 11.00 - 13.00 juga dilarang (maklum, Jumatan rek).
 
+Pada WebServer gunakan syntac berikut:
+```bash
+iptables -A INPUT -p tcp --dport 22 -s 10.40.4.0/22 -m time --timestart 12:00 --timestop 13:00 --weekdays Mon,Tue,Wed,Thu -j DROP
+
+iptables -A INPUT -p tcp --dport 22 -s 10.40.4.0/22 -m time --timestart 11:00 --timestop 13:00 --weekdays Fri -j DROP
+```
+
+Testing dengan ubah datenya menggunakan node client lalu `nmap` ke webserver, sehingga hasil testing akan seperti berikut:
+<img width="817" alt="Screenshot 2023-12-15 at 14 19 59" src="https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/91003946/3835fc0e-74cd-4cc1-bbef-278b012374d0">
+
+<img width="818" alt="Screenshot 2023-12-15 at 14 19 47" src="https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/91003946/80e9580f-f33c-4ee0-b336-2f3c26040ebe">
+
 ## Nomor 7
 > Karena terdapat 2 WebServer, kalian diminta agar setiap client yang mengakses Sein dengan Port 80 akan didistribusikan secara bergantian pada Sein dan Stark secara berurutan dan request dari client yang mengakses Stark dengan port 443 akan didistribusikan secara bergantian pada Sein dan Stark secara berurutan.
+
+Pada Heiter dan Frieren gunakan syntax berikut: 
+```bash
+iptables -A PREROUTING -t nat -p tcp --dport 80 -d 10.40.4.2 -m statistic --mode nth --every 2 --packet 0 -j DNAT --to-destination 10.40.4.2
+
+iptables -A PREROUTING -t nat -p tcp --dport 80 -d 10.40.4.2 -j DNAT --to-destination 192.177.0.18
+
+iptables -A PREROUTING -t nat -p tcp --dport 443 -d 10.40.0.18 -m statistic --mode nth --every 2 --packet 0 -j DNAT --to-destination 10.40.0.18
+
+iptables -A PREROUTING -t nat -p tcp --dport 443 -d 10.40.0.18 -j DNAT --to-destination 10.40.4.2
+```
+
+lalu testing dengan membuka koneksi webserver sein dan stark dengan syntax berikut untuk port 80:
+```bash
+while true; do nc -l -p 80 -c 'echo "ini sein"'; done
+```
+dan
+```bash
+while true; do nc -l -p 443 -c 'echo "ini stark"'; done
+```
+
+sedangkan port 443 gunakan syntax:
+```bash
+while true; do nc -l -p 443 -c 'echo "ini sein"'; done
+```
+dan 
+```bash
+while true; do nc -l -p 443 -c 'echo "ini stark"'; done
+```
+
+Sehingga hasil testingnya akan seperti berikut:
+<img width="1680" alt="Screenshot 2023-12-15 at 23 35 37" src="https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/91003946/bad32970-6c14-4659-abc1-cfa6eb2a705e">
 
 ## Nomor 8
 > Karena berbeda koalisi politik, maka subnet dengan masyarakat yang berada pada Revolte dilarang keras mengakses WebServer hingga masa pencoblosan pemilu kepala suku 2024 berakhir. Masa pemilu (hingga pemungutan dan penghitungan suara selesai) kepala suku bersamaan dengan masa pemilu Presiden dan Wakil Presiden Indonesia 2024.
 
+Pada webserver gunakan syntax berikut:
+```bash
+Revolte_Subnet="10.40.0.0/30"
+
+Pemilu_Start=$(date -d "2023-10-19T00:00" +"%Y-%m-%dT%H:%M")
+
+Pemilu_End=$(date -d "2024-02-15T00:00" +"%Y-%m-%dT%H:%M")
+
+iptables -A INPUT -p tcp -s $Revolte_Subnet --dport 80 -m time --datestart "$Pemilu_Start" --datestop "$Pemilu_End" -j DROP
+```
+
+Testing dengan mengubah date sesuai yang diminta pada soal, sehingga hasilnya akan seperti berikut:
+<img width="1680" alt="Screenshot 2023-12-15 at 23 52 23" src="https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/91003946/958a7df8-aee6-4cd8-b621-01c0b034adf3">
+
+<img width="1680" alt="Screenshot 2023-12-15 at 23 50 53" src="https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/91003946/3056869c-f7bd-4615-939a-6470e6976460">
+
+
 ## Nomor 9
-> Sadar akan adanya potensial saling serang antar kubu politik, maka WebServer harus dapat secara otomatis memblokir  alamat IP yang melakukan scanning port dalam jumlah banyak (maksimal 20 scan port) di dalam selang waktu 10 menit.  (clue: test dengan nmap)
+> Sadar akan adanya potensial saling serang antar kubu politik, maka WebServer harus dapat secara otomatis memblokir  alamat IP yang melakukan scanning port dalam jumlah banyak (maksimal 20 scan port) di dalam selang waktu 10 menit.  (clue: test dengan nmap)\
+
+
 
 ## Nomor 10
 > Karena kepala suku ingin tau paket apa saja yang di-drop, maka di setiap node server dan router ditambahkan logging paket yang di-drop dengan standard syslog level.
+
+Gunakan syntax berikut:
+```bash
+iptables -A INPUT  -j LOG --log-level debug --log-prefix 'Dropped Packet' -m limit --limit 1/second --limit-burst 10
+```
+
+Berikut adalah hasil dari test syntax yang telah dijalankan:
+<img width="1680" alt="Screenshot 2023-12-16 at 02 46 34" src="https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/91003946/91731c99-63cf-486d-921c-5ce77f8942c9">
+
+<img width="1680" alt="Screenshot 2023-12-16 at 02 46 07" src="https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/91003946/2f090267-8557-4f34-ad7e-1c60d19c0373">
+
+<img width="1680" alt="Screenshot 2023-12-16 at 02 38 07" src="https://github.com/fadillaarn/Jarkom-Modul-5-E07-2023/assets/91003946/33cb3aa9-60a1-40b4-b6b2-8e8224bd5112">
 
 ## Kendala
